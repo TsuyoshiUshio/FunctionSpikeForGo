@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure/cli"
+	"github.com/Azure/go-autorest/autorest/to"
 )
 
 type AccessToken struct {
@@ -109,7 +112,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 	resourceGroupName := "AzureFunctionSpike"
-	functionAppName := "YOUR_FUNCTION_APP_NAME"
+	functionAppName := "YOUR_FUNCTION_APP_NAME_HERE"
 	functionName := "HttpTriggerCSharp1"
 	result, err := client.GetFunction(ctx, resourceGroupName, functionAppName, functionName)
 	fmt.Println("---functions")
@@ -119,5 +122,17 @@ func main() {
 	functionSecrets, err := client.ListFunctionSecrets(ctx, resourceGroupName, functionAppName, functionName)
 	json, _ = functionSecrets.MarshalJSON()
 	fmt.Printf("functionSecrets: %v ¥n", string(json))
+	fmt.Println("---function admin token")
+	functionAdminToken, err := client.GetFunctionsAdminToken(ctx, resourceGroupName, functionAppName)
+
+	httpClient := &http.Client{}
+	req, err := http.NewRequest("GET", "https://"+functionAppName+".azurewebsites.net/admin/functions/"+functionName+"/keys", nil)
+	authorization := "Bearer " + to.String(functionAdminToken.Value)
+	req.Header.Add("Authorization", authorization)
+	resp, err := httpClient.Do(req)
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	fmt.Printf("functionKeys-----")
+	fmt.Printf(string(body))
 
 }
