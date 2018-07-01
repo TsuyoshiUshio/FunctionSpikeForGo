@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -20,6 +21,21 @@ type AccessToken struct {
 	ClientID     string
 	AccessToken  *adal.Token
 	IsCloudShell bool
+}
+
+type KeyManagemetResponse struct {
+	Keys  *[]KeyManagementKey  `json:"keys"`
+	Links *[]KeyManagementLink `json:"links"`
+}
+
+type KeyManagementKey struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type KeyManagementLink struct {
+	Rel  string `json:"rel"`
+	Href string `json:"href"`
 }
 
 func findValidAccessTokenForTenant(tokens []cli.Token, tenantId string) (*AccessToken, error) {
@@ -116,12 +132,12 @@ func main() {
 	functionName := "HttpTriggerCSharp1"
 	result, err := client.GetFunction(ctx, resourceGroupName, functionAppName, functionName)
 	fmt.Println("---functions")
-	json, _ := result.MarshalJSON()
-	fmt.Printf("function: %v ¥n", string(json))
+	jsonBytes, _ := result.MarshalJSON()
+	fmt.Printf("function: %v ¥n", string(jsonBytes))
 	fmt.Println("---functionSecrets")
 	functionSecrets, err := client.ListFunctionSecrets(ctx, resourceGroupName, functionAppName, functionName)
-	json, _ = functionSecrets.MarshalJSON()
-	fmt.Printf("functionSecrets: %v ¥n", string(json))
+	jsonBytes, _ = functionSecrets.MarshalJSON()
+	fmt.Printf("functionSecrets: %v ¥n", string(jsonBytes))
 	fmt.Println("---function admin token")
 	functionAdminToken, err := client.GetFunctionsAdminToken(ctx, resourceGroupName, functionAppName)
 
@@ -133,6 +149,12 @@ func main() {
 	body, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	fmt.Printf("functionKeys-----")
-	fmt.Printf(string(body))
+	bodyString := string(body)
+	fmt.Printf(bodyString)
+	var keyResponse KeyManagemetResponse
+	err = json.Unmarshal(body, &keyResponse)
+	fmt.Printf("unmarshal -> marshal")
+	jsonBytes, err = json.Marshal(keyResponse)
+	fmt.Printf(string(jsonBytes))
 
 }
