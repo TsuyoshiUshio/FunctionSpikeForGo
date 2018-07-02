@@ -141,9 +141,18 @@ func main() {
 	fmt.Println("---function admin token")
 	functionAdminToken, err := client.GetFunctionsAdminToken(ctx, resourceGroupName, functionAppName)
 
+	functionEnvelopes, err := client.ListFunctions(ctx, resourceGroupName, functionAppName)
+	fmt.Println("-----ListFunctions: functionSecrets")
+	//functionEnvelopes.Next()
+	value2func := functionEnvelopes.Values
+	value2 := value2func()
+	jsonBytes, _ = json.Marshal(value2)
+	fmt.Printf("functionSecrets: %v ¥n", string(jsonBytes))
+
 	httpClient := &http.Client{}
-	req, err := http.NewRequest("GET", "https://"+functionAppName+".azurewebsites.net/admin/functions/"+functionName+"/keys", nil)
 	authorization := "Bearer " + to.String(functionAdminToken.Value)
+
+	req, err := http.NewRequest("GET", "https://"+functionAppName+".azurewebsites.net/admin/functions/"+functionName+"/keys", nil)
 	req.Header.Add("Authorization", authorization)
 	resp, err := httpClient.Do(req)
 	body, err := ioutil.ReadAll(resp.Body)
