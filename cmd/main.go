@@ -158,7 +158,7 @@ func main() {
 		bindings := config["bindings"].([]interface{})
 		for _, binding := range bindings {
 			triggerConfig := binding.(map[string]interface{})
-			if triggerConfig["direction"].(string) == "in" {
+			if triggerConfig["direction"].(string) == "in" && triggerConfig["authLevel"] != nil && triggerConfig["type"] != nil {
 				fmt.Println("bidnings:in:authLevel: ", triggerConfig["authLevel"].(string))
 				fmt.Println("bindings:in:type", triggerConfig["type"].(string))
 			}
