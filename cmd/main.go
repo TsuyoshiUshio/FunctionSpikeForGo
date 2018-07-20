@@ -128,7 +128,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 	resourceGroupName := "AzureFunctionSpike"
-	functionAppName := "YOUR_FUNCTION_APP_NAME_HERE"
+	functionAppName := "YOUR_FUNCTION_APP_NAME"
 	functionName := "HttpTriggerCSharp1"
 	result, err := client.GetFunction(ctx, resourceGroupName, functionAppName, functionName)
 	fmt.Println("---functions")
@@ -154,15 +154,15 @@ func main() {
 
 	fmt.Println("Getting FunctionKeys =======================")
 	for _, envelope := range value2 {
-		config := envelope.Config.(map[string]interface{})
-		bindings := config["bindings"].([]interface{})
-		for _, binding := range bindings {
-			triggerConfig := binding.(map[string]interface{})
-			if triggerConfig["direction"].(string) == "in" && triggerConfig["authLevel"] != nil && triggerConfig["type"] != nil {
-				fmt.Println("bidnings:in:authLevel: ", triggerConfig["authLevel"].(string))
-				fmt.Println("bindings:in:type", triggerConfig["type"].(string))
-			}
-		}
+		//	config := envelope.Config.(map[string]interface{})
+		//	bindings := config["bindings"].([]interface{})
+		//for _, binding := range bindings {
+		//			triggerConfig := binding.(map[string]interface{})
+		//			if triggerConfig["direction"].(string) == "in" && triggerConfig["authLevel"] != nil && triggerConfig["type"] != nil {
+		//	fmt.Println("bidnings:in:authLevel: ", triggerConfig["authLevel"].(string))
+		//	fmt.Println("bindings:in:type", triggerConfig["type"].(string))
+		//			}
+		//}
 
 		currentFunctionName := strings.TrimLeft((*envelope.Name), (functionAppName + "/"))
 		fmt.Println("funtionName: %+v  ---------------------", currentFunctionName)
@@ -182,6 +182,18 @@ func main() {
 		fmt.Printf("unmarshal -> marshal")
 		jsonBytes, err = json.Marshal(keyResponse)
 		fmt.Printf(string(jsonBytes))
+		fmt.Printf("adminKeys-----")
+		req, err = http.NewRequest("GET", "https://"+functionAppName+".azurewebsites.net/admin/host/keys", nil)
+		if err != nil {
+			panic(err)
+		}
+
+		req.Header.Add("Authorization", authorization)
+		resp, err = httpClient.Do(req)
+		body, err = ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		bodyString = string(body)
+		fmt.Printf(bodyString)
 	}
 
 }
