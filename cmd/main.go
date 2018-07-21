@@ -128,7 +128,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 	resourceGroupName := "AzureFunctionSpike"
-	functionAppName := "YOUR_FUNCTION_APP_NAME"
+	functionAppName := "YOUR_FUNCTION_KEY"
 	functionName := "HttpTriggerCSharp1"
 	result, err := client.GetFunction(ctx, resourceGroupName, functionAppName, functionName)
 	fmt.Println("---functions")
@@ -183,7 +183,7 @@ func main() {
 		jsonBytes, err = json.Marshal(keyResponse)
 		fmt.Printf(string(jsonBytes))
 		fmt.Printf("adminKeys-----")
-		req, err = http.NewRequest("GET", "https://"+functionAppName+".azurewebsites.net/admin/host/keys", nil)
+		req, err = http.NewRequest("GET", "https://"+functionAppName+".azurewebsites.net/admin/host/systemkeys", nil) // admin/host/keys = host key admin/host/systemkeys = systemkey
 		if err != nil {
 			panic(err)
 		}
